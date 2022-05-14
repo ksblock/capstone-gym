@@ -5,115 +5,63 @@ const LocalStrategy = require('passport-local').Strategy;
 const conn = require('../config/db_config');
 const req = require('express/lib/request');
 const axios= require('axios');
+const mysql = require('mysql2');
 
 const router = express.Router();
-
-router.get('/', function (req, res) {
-    console.log(req.user);
-    if(req.user)
-        console.log("test");
-    res.send('Hello, Express');
-    //res.sendFile(path.join(__dirname, "../public", "gym.html"));
-})
 
 router.post('/idCheck', function (req, res) {
   const param = [req.body.id];
   console.log(req.body.id);
 
-  var sql = 'SELECT count(*) FROM gym WHERE gym.id = ?';
+  var sql = 'SELECT count(*) FROM host_info WHERE id = ?';
   conn.query(sql, param, function(err, result) {
     if(err)
     {
-      console.log(err);
-      res.redirect('/gym/signup');
+      res.send({message: "에러 발생"})
     }
     console.log(result[0]['count(*)']);
     if(result[0]['count(*)'] === 0)//id 사용 가능
-      res.send({status:200, result:0});
+      res.send({status:200, result:0, message: "사용가능"});
     else//id 사용 불가
-      res.send({status:200, result:1});
+      res.send({status:200, result:1, message: "사용 불가"});
   })
 })
 
-router.post('/checkCompany', async (req, res) => {
-  const url = 'http://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=' + process.env.serviceKey + '&returnType=JSON';
-  console.log(url);
-  console.log(req.body);
-
-  var input = {
-    "businesses": [
-      {
-        "b_no": req.body.num,
-        "start_dt": req.body.date,
-        "p_nm": req.body.host_name
-      }
-    ]
-  }
-
-  console.log(input);
-  
-  try {
-    const result = await axios({
-        url: url,
-        method: 'post',
-        data: input
-        });
-        //console.log(result);
-        console.log(result.data['data'][0]['valid']);
-        var valid_result = result.data['data'][0]['valid'];
-        if(valid_result === '01')
-            res.status(200).send('인증');
-        else
-            res.status(200).send('인증 실패');        
-    } catch(error) {
-        console.log(error);
-        res.send("error");
-    }
+router.post('/signup/host', function (req, res) {
+  const param_host = [req.body.host_name, req.body.id, req.body.pw, req.body.phone, req.body.email];
     
-})
+  var sql1 = 'INSERT INTO host_info VALUES(NULL, ?, ?, ?, ?, ?);'
 
-router.get('/signup', function (req, res) {
-    res.sendFile(path.join(__dirname, "../public/gym", "signup.html"));
-})
-
-router.post('/signup', function (req, res) {
-    const param = [req.body.name, req.body.host_name, req.body.id, req.body.pw, req.body.phone, 
-        req.body.location, req.body.registration, req.body.large, req.body.small, req.body.event];
-      
-        var sql = 'INSERT INTO gym VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        conn.query(sql, param, function (err, result) {
-          if(err)
-          {
-            console.log(err); 
-            return res.redirect('/account/signup');
-          }
-        })
-      
-        res.redirect('/account/login');
-})
-
-router.get('/login', function (req, res) {
-    if(req.user){
-        console.log(req.user);
-        console.log(typeof(req.user));
-        console.log(req.user.gym_id);
-        //console.log(req.session);
+  var sql1s = mysql.format(sql1, param_host);
+  
+  conn.query(sql1s, function (err, result) {
+    if(err){
+      console.log(err); 
+      return res.send({message: "에러 발생"});
     }
-    res.sendFile(path.join(__dirname, "../public/gym", "login.html"));
+  })
+  res.send({message: "회원가입 성공"})
 })
 
-router.post('/login', passport.authenticate('local', {
-            failureRedirect: '/account/login',
-            session: true
-        }),
-        function (req, res) {
-            res.redirect('/' + req.user.gym_id);
-        }
+router.post('/login', 
+  passport.authenticate('local', {
+    successRedirect: '/account/successLogin',
+    failureRedirect: '/account/failureLogin',
+    session: true
+  })
 );
 
 router.get('/logout', function (req, res) {
     req.logout();
     res.redirect('/account/login');
+})
+
+router.get('/successLogin', function (req, res) {
+  res.send({user: req.user, message:"로그인 성공"});
+})
+
+router.get('/failureLogin', function (req, res) {
+  res.send({message:"로그인 실패"});
 })
 
 router.get('/test', function (req, res) {

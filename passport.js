@@ -6,20 +6,21 @@ const conn = require('./config/db_config');
 module.exports = () => {
     passport.serializeUser(function(user, done) {
         console.log("serializeUser ", user)
-        done(null, user.gym_id);
+        done(null, user.host_id);
       });
       
     passport.deserializeUser(function(id, done) {
         console.log("deserializeUser id ", id)
         var userinfo;
         //console.log(id);
-        var sql = 'SELECT * FROM gym where gym_id=?';
+        var sql = 'SELECT * FROM host_info where host_id=?';
         conn.query(sql, [id], function(err, result) {
           if(err)
             console.log(err);
           //console.log("deserializeUser mysql result : ", result);
           var json = JSON.stringify(result[0]);
           userinfo = JSON.parse(json);
+          console.log(userinfo);
           done(null, userinfo);
         })
     });
@@ -29,7 +30,7 @@ module.exports = () => {
           passwordField: 'pw'
         },
         function(username, password, done) {
-          var sql = 'SELECT * FROM gym WHERE id=? and pw=?';
+          var sql = 'SELECT * FROM host_info WHERE id=? and pw=?';
           conn.query(sql, [username, password], function(err, result) {
             if(err)
               console.log(err);
