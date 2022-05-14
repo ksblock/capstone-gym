@@ -60,10 +60,10 @@ router.get('/detail/:id', function (req, res) {
 })
 
 router.post('/signup/gyminfo', function (req, res) {
-  const param_info = [req.body.gym_name, req.body.host_id, req.body.email, req.body.phone, req.body.location, 
+  const param_info = [req.body.gym_name, req.user.host_id, req.body.email, req.body.phone, req.body.location, 
     req.body.state, req.body.city, req.body.sports];
     
-  const param_id = [req.body.gym_name, req.body.host_id];
+  const param_id = [req.body.gym_name, req.user.host_id];
 
   var sql1 = 'INSERT INTO gym_info VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?);'
   var sql2 = 'SELECT gym_id from gym_info where gym_name=? and host_id=?;';
