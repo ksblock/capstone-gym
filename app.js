@@ -8,6 +8,7 @@ const mysql = require('mysql2');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const passportConfig = require('./passport');
+const cors = require('cors');
 
 const conn = require('./config/db_config');
 
@@ -37,6 +38,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 passportConfig();
+
+app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/account', accountRouter);
