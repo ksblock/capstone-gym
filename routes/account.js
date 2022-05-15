@@ -64,6 +64,15 @@ router.get('/failureLogin', function (req, res) {
   res.send({message:"로그인 실패"});
 })
 
+router.get('/getHost', function (req, res) {
+  if(req.user){
+    res.send(req.user.host_name);
+  }
+  else{
+    res.send({message: "로그인 상태가 아님"});
+  }
+})
+
 router.get('/test', function (req, res) {
     console.log(req.session);
     console.log(req.user);
