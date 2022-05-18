@@ -27,7 +27,8 @@ module.exports = () => {
       
     passport.use(new LocalStrategy({
           usernameField: 'id',
-          passwordField: 'pw'
+          passwordField: 'pw',
+	  session: true
         },
         function(username, password, done) {
           var sql = 'SELECT * FROM host_info WHERE id=? and pw=?';

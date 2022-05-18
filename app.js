@@ -39,7 +39,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 passportConfig();
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credential: true
+}));
 
 app.use('/', indexRouter);
 app.use('/account', accountRouter);

@@ -24,6 +24,7 @@ router.get('/', function (req, res) {
 
 router.get('/list', function (req, res) {
   var id = req.user.host_id;
+  //var id = 16;
   var sql = 'select gym_id, gym_name, sports from gym_info where host_id=?;';
 
   var sqls = mysql.format(sql, id);
@@ -61,8 +62,9 @@ router.get('/detail/:id', function (req, res) {
 })
 
 router.post('/signup/gyminfo', function (req, res) {
-  const param_info = [req.body.gym_name, req.user.host_id, req.body.email, req.body.phone, req.body.location, 
-    req.body.state, req.body.city, req.body.sports];
+  var host_id = 16;
+
+  const param_info = [req.body.gym_name, req.user.host_id, req.body.email, req.body.phone, req.body.location, req.body.state, req.body.city, req.body.sports];
     
   const param_id = [req.body.gym_name, req.user.host_id, req.body.sports];
 

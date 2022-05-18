@@ -57,6 +57,8 @@ router.get('/logout', function (req, res) {
 })
 
 router.get('/successLogin', function (req, res) {
+  console.log(req.headers.cookie);
+  console.log(req.user);
   res.send({user: req.user, message:"로그인 성공"});
 })
 
@@ -65,6 +67,8 @@ router.get('/failureLogin', function (req, res) {
 })
 
 router.get('/getHost', function (req, res) {
+  var name = "정석영";
+  //res.send(name);
   if(req.user){
     res.send(req.user.host_name);
   }
