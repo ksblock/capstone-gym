@@ -39,6 +39,8 @@ router.get('/detail/:id', function (req, res) {
   
   const id = parseInt(req.params.id, 10);
 
+  console.log(req.cookies);
+  console.log(req.user);
   if (Number.isNaN(id)) {
     return res.status(400).send({message:"실패"});
   }
@@ -63,7 +65,8 @@ router.get('/detail/:id', function (req, res) {
 
 router.post('/signup/gyminfo', function (req, res) {
   var host_id = 16;
-
+  console.log(req.user.host_id);
+  console.log(req.cookies);
   const param_info = [req.body.gym_name, req.user.host_id, req.body.email, req.body.phone, req.body.location, req.body.state, req.body.city, req.body.sports];
     
   const param_id = [req.body.gym_name, req.user.host_id, req.body.sports];

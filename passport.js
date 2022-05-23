@@ -5,10 +5,17 @@ const conn = require('./config/db_config');
 
 module.exports = () => {
     passport.serializeUser(function(user, done) {
-        console.log("serializeUser ", user)
-        done(null, user.host_id);
+        //console.log("serializeUser ", user)
+        done(null, user);
+        /*done(null, user.host_id);*/
       });
-      
+
+    passport.deserializeUser(function(user, done) {
+  	console.log(user);
+  	done(null, user);
+      });
+
+    /*  
     passport.deserializeUser(function(id, done) {
         console.log("deserializeUser id ", id)
         var userinfo;
@@ -24,7 +31,7 @@ module.exports = () => {
           done(null, userinfo);
         })
     });
-      
+    */  
     passport.use(new LocalStrategy({
           usernameField: 'id',
           passwordField: 'pw',
@@ -44,7 +51,7 @@ module.exports = () => {
               console.log(result);
               var json = JSON.stringify(result[0]);
               var gyminfo = JSON.parse(json);
-              console.log("gyminfo" + gyminfo);
+              //console.log("gyminfo" + gyminfo);
               return done(null, gyminfo);
             }
           })

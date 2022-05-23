@@ -42,7 +42,7 @@ router.post('/signup/host', function (req, res) {
   })
   res.send({message: "회원가입 성공"})
 })
-
+/*
 router.post('/login', 
   passport.authenticate('local', {
     successRedirect: '/account/successLogin',
@@ -50,6 +50,15 @@ router.post('/login',
     session: true
   })
 );
+*/
+router.post('/login',
+  passport.authenticate('local'), 
+  function(req, res){
+	console.log(req.user);
+	res.send({message: "로그인 성공", user: req.user});
+  }
+);
+
 
 router.get('/logout', function (req, res) {
     req.logout();
