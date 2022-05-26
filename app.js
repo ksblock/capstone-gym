@@ -37,9 +37,8 @@ app.use(session({
   secret: process.env.COOKIE_SECRET,
   cookie: {
     httpOnly: true,
-    //secure: false,
-    domain: "192.168.0.102",
-    sameSite: "none",
+    secure: false,
+    //sameSite: "none",
   }
 }));
 
@@ -50,7 +49,7 @@ passportConfig();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(cors({origins: ["http://192.168.0.102:8080", "http://192.168.35.157:8080", "http://localhost:8080"]}));
+app.use(cors({origins: ["http://localhost:8080", "http://192.168.0.102:8080", "http://192.168.35.157:8080"]}));
 
 app.use('/', indexRouter);
 app.use('/account', accountRouter);

@@ -2,45 +2,60 @@ const express = require('express');
 const path = require('path');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const conn = require('../config/db_config');
+const pool = require('../config/db_config');
 const req = require('express/lib/request');
 const axios= require('axios');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
 const router = express.Router();
 
-router.post('/idCheck', function (req, res) {
+router.post('/idCheck', async function (req, res) {
   const param = [req.body.id];
   console.log(req.body.id);
 
   var sql = 'SELECT count(*) FROM host_info WHERE id = ?';
-  conn.query(sql, param, function(err, result) {
-    if(err)
-    {
-      res.send({message: "에러 발생"})
-    }
+
+  let connection = await pool.getConnection(async conn => conn);
+  try{
+    let [result] = await connection.query(sql, param);
+    console.log(result);
+    
+    connection.release();
+    
     console.log(result[0]['count(*)']);
+    
     if(result[0]['count(*)'] === 0)//id 사용 가능
       res.send({status:200, result:0, message: "사용가능"});
     else//id 사용 불가
       res.send({status:200, result:1, message: "사용 불가"});
-  })
+
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send({message: "에러 발생"})
+  }
 })
 
-router.post('/signup/host', function (req, res) {
+router.post('/signup/host', async function (req, res) {
   const param_host = [req.body.host_name, req.body.id, req.body.pw, req.body.phone, req.body.email];
-    
   var sql1 = 'INSERT INTO host_info VALUES(NULL, ?, ?, ?, ?, ?);'
-
   var sql1s = mysql.format(sql1, param_host);
   
-  conn.query(sql1s, function (err, result) {
-    if(err){
-      console.log(err); 
-      return res.send({message: "에러 발생"});
-    }
-  })
-  res.send({message: "회원가입 성공"})
+  let connection = await pool.getConnection(async conn => conn);
+  try{
+    let [result] = await connection.query(sql1s);
+    console.log(result);
+    
+    connection.release();
+    
+    res.send({message: "회원가입 성공"});
+
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send({message: "에러 발생"})
+  }
+  
 })
 /*
 router.post('/login', 
@@ -62,7 +77,7 @@ router.post('/login',
 
 router.get('/logout', function (req, res) {
     req.logout();
-    res.redirect('/account/login');
+    res.send("로그아웃");
 })
 
 router.get('/successLogin', function (req, res) {
