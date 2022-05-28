@@ -159,6 +159,42 @@ router.post('/signup/operation', async function (req, res) {
 
 router.post('/update/:id', async function (req, res) {
   var update_gym_id = Number(req.params.id);
+  
+  var key = Object.keys(req.body);
+
+  let connection = await pool.getConnection(async conn => conn);
+  try{
+    for(var i=0;i<key.length;i++)
+    {
+      var info = ["gym_name", "location", "sports", "phone", "email"];
+      var table = "gym_operation";
+      for(var j = 0; j < info.length; j++)
+      {
+        if(info[j] === key[i])
+        {
+          table = "gym_info";
+          break;
+        }
+      }
+      console.log(table);
+
+      var sql = "UPDATE " + table + " SET " + key[i] + "=? WHERE gym_id = ?";
+
+      var params = [req.body[key[i]], update_gym_id];
+
+      let [results] = await connection.query(sql, params);
+    }
+  }catch(err){
+    console.log(err);
+  }finally{
+    connection.release();
+  }
+
+  res.send("ㅎㅎ");
+})
+
+/*router.post('/update/:id', async function (req, res) {
+  var update_gym_id = Number(req.params.id);
   var info = ["gym_name", "location", "sports", "phone", "email"];
   var table = "gym_operation";
   for(var i = 0; i < info.length; i++)
@@ -182,7 +218,7 @@ router.post('/update/:id', async function (req, res) {
   }
 
   res.send("ㅎㅎ");
-})
+})*/
 
 router.post('/checkCompany', async (req, res) => {
   const url = 'http://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=' + process.env.serviceKey + '&returnType=JSON';
