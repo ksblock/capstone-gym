@@ -51,8 +51,6 @@ router.get('/getSales/:type/:id', async function (req, res) {
     connection.release();
     res.send("??");
   }
-
-  
 })
 
 router.get('/getReservation/:type/:id', async function (req, res) {
@@ -80,8 +78,6 @@ router.get('/getReservation/:type/:id', async function (req, res) {
     connection.release();
     res.send("??");
   }
-
-    
 })
 
 router.get('/getTime/:type/:id', async function (req, res) {
@@ -100,7 +96,6 @@ router.get('/getTime/:type/:id', async function (req, res) {
 
   var id = Number(req.params.id);
   
-
   let connection = await pool.getConnection(async conn => conn);
 
   try{
@@ -169,7 +164,130 @@ router.get('/getCourt/:type/:id', async function (req, res) {
     connection.release();
     res.send("??");
   }
-  
+})
+
+router.get('/getSalesRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, sum(amount) as sales, rank() over (order by sum(amount) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW()" 
+  + "AND gym_info.gym_id=reservation.gym_id group by reservation.gym_id;"
+
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
+})
+
+router.get('/getReservationRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, count(*) as count, rank() over (order by count(*) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_info.gym_id=reservation.gym_id group by reservation.gym_id;"
+
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
+})
+
+router.get('/getMySalesRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, sum(amount) as sales, rank() over (order by sum(amount) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_info.gym_id=reservation.gym_id AND gym_info.gym_id in (select gym_id from gym_info where host_id=?) "
+  + "group by reservation.gym_id;"
+
+  var host = req.user.host_id;
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql, host);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
+})
+
+router.get('/getMyReservationRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, count(*) as count, rank() over (order by count(*) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_info.gym_id=reservation.gym_id AND gym_info.gym_id in (select gym_id from gym_info where host_id=?) "
+  + "group by reservation.gym_id;"
+
+  var host = req.user.host_id;
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql, host);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
+})
+
+router.get('/getSportsSalesRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, sum(amount) as sales, rank() over (order by sum(amount) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_info.gym_id=reservation.gym_id AND gym_info.sports = (select sports from gym_info where gym_id=?) "
+  + "group by reservation.gym_id;"
+
+
+  var id = req.params.id;
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql, id);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
+})
+
+router.get('/getSportsReservationRanking/:type/:id', async function (req, res) {
+  var sql = "SELECT gym_info.gym_name, count(*) as sales, rank() over (order by count(*) desc) as ranking "
+  + "FROM reservation, gym_info WHERE date BETWEEN DATE_ADD(NOW(),INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_info.gym_id=reservation.gym_id AND gym_info.sports = (select sports from gym_info where gym_id=?) "
+  + "group by reservation.gym_id;"
+
+
+  var id = req.params.id;
+  console.log(sql);
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    let [result] = await connection.query(sql, id);
+    connection.release();
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send("??");
+  }
 })
 
 module.exports = router;
