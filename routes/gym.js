@@ -157,7 +157,7 @@ router.post('/signup/operation', async function (req, res) {
   }
 })
 
-router.post('/update/:id', async function (req, res) {
+router.post('/update/:id', async function (req, res) {//자기 체육관만 수정해야지 뭐하는 거야
   var update_gym_id = Number(req.params.id);
   
   var key = Object.keys(req.body);

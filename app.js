@@ -15,6 +15,7 @@ const conn = require('./config/db_config');
 const indexRouter = require('./routes');
 const gymRouter = require('./routes/gym');
 const accountRouter = require('./routes/account');
+const dataRouter = require('./routes/data');
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use(cors({origins: ["http://localhost:8080", "http://192.168.0.102:8080", "h
 app.use('/', indexRouter);
 app.use('/account', accountRouter);
 app.use('/gym', gymRouter);
+app.use('/data', dataRouter);
 
 app.use((req, res, next) => {
   res.status(404).send('Not Found');
