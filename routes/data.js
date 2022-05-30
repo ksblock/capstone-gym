@@ -85,19 +85,21 @@ router.get('/getReservation/:type/:id', async function (req, res) {
 })
 
 router.get('/getTime/:type/:id', async function (req, res) {
-  var sql_month = 'SELECT MONTH(date) AS month, end_time-start_time as time, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, time;';
+  /*var sql_month = 'SELECT MONTH(date) AS month, end_time-start_time as time, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, time;';
   var sql_week="SELECT "
   + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
   + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
   + "DATE_FORMAT(date, '%Y%U') AS week, end_time - start_time as time, count(*) as reserve "
   + "FROM reservation "
   + "WHERE gym_id=? "
-  + "GROUP BY week, time;";
+  + "GROUP BY week, time;";*/
+
+  var sql = "SELECT end_time - start_time as time, count(*) as count FROM reservation "
+  + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_id=? group by time ORDER BY time"
 
   var id = Number(req.params.id);
-  var sql = sql_week;
-  if(req.params.type === 'month')
-    sql = sql_month;
+  
 
   let connection = await pool.getConnection(async conn => conn);
 
@@ -112,19 +114,20 @@ router.get('/getTime/:type/:id', async function (req, res) {
 })
 
 router.get('/getPlayer/:type/:id', async function (req, res) {
-  var sql_month = "SELECT MONTH(date) AS month, player, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, player;";
-  var sql_week="SELECT "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  + "DATE_FORMAT(date, '%Y%U') AS week, player, count(*) as reserve "
-  + "FROM reservation "
-  + "WHERE gym_id=? "
-  + "GROUP BY week, player;";
+  // var sql_month = "SELECT MONTH(date) AS month, player, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, player;";
+  // var sql_week="SELECT "
+  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
+  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
+  // + "DATE_FORMAT(date, '%Y%U') AS week, player, count(*) as reserve "
+  // + "FROM reservation "
+  // + "WHERE gym_id=? "
+  // + "GROUP BY week, player;";
+
+  var sql = "SELECT player, count(*) as count FROM reservation "
+  + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_id=? group by player ORDER BY player";
 
   var id = Number(req.params.id);
-  var sql = sql_week;
-  if(req.params.type === 'month')
-    sql = sql_month;
 
   let connection = await pool.getConnection(async conn => conn);
 
@@ -133,26 +136,28 @@ router.get('/getPlayer/:type/:id', async function (req, res) {
     connection.release();
     res.send(result);
   }catch(err){
+    console.log(err);
     connection.release();
     res.send("??");
   }
 })
 
 router.get('/getCourt/:type/:id', async function (req, res) {
-  var sql_month = "SELECT MONTH(date) AS month, court, count(*) as count FROM reservation WHERE gym_id=? GROUP BY month, court;";
-  var sql_week="SELECT "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  + "DATE_FORMAT(date, '%Y%U') AS week, court, count(*) as reserve "
-  + "FROM reservation "
-  + "WHERE gym_id=? "
-  + "GROUP BY week, court;";
+  // var sql_month = "SELECT MONTH(date) AS month, court, count(*) as count FROM reservation WHERE gym_id=? GROUP BY month, court;";
+  // var sql_week="SELECT "
+  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
+  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
+  // + "DATE_FORMAT(date, '%Y%U') AS week, court, count(*) as reserve "
+  // + "FROM reservation "
+  // + "WHERE gym_id=? "
+  // + "GROUP BY week, court;";
+
+  var sql = "SELECT court, count(*) as count FROM reservation "
+  + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
+  + "AND gym_id=? group by court ORDER BY court"
 
   var id = Number(req.params.id);
-  var sql = sql_week;
-  if(req.params.type === 'month')
-    sql = sql_month;
-  console.log(sql);
+  
   let connection = await pool.getConnection(async conn => conn);
 
   try{
