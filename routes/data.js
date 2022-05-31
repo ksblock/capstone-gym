@@ -8,38 +8,27 @@ const router = express.Router();
 
 /*
 ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
-
-SELECT MONTH(date) AS month, sum(player) FROM reservation GROUP BY month;
-
-SELECT
-DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start,
-DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end,
-DATE_FORMAT(date, '%Y%U') AS week, court, count(*)
-  FROM reservation
-GROUP BY week, court;
-
-SELECT
-DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start,
-DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end,
-DATE_FORMAT(date, '%Y%U') AS week, player, count(*)
-  FROM reservation
-GROUP BY week, player;*/
+*/
 
 router.get('/getSales/:type/:id', async function (req, res) {
-  var sql_month="SELECT MONTH(date) AS month, sum(amount) as sales FROM reservation WHERE gym_id=? GROUP BY month;";
-  var sql_week="SELECT "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  + "DATE_FORMAT(date, '%Y%U') AS week, sum(amount) as sales "
-  + "FROM reservation "
-  + "WHERE gym_id=? "
-  + "GROUP BY week;";
+  var sql_month="select recent_month.month, IFNULL(sales_month.sales, 0) as sales from ( "
+    + "SELECT date_format(date_sub(NOW(), INTERVAL minus MONTH), '%Y-%m') as month "
+    + "from minus_month) recent_month "
+    + "LEFT JOIN sales_month on recent_month.month=sales_month.month "
+    + "and sales_month.gym_Id=? ORDER BY recent_month.month;";
+  var sql_week="select recent_week.week_start, recent_week.week_end, recent_week.week, "
+  + "IFNULL(sales_week.sales, 0) as sales from (SELECT "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.start) DAY), '%Y/%m/%d') as week_start, "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.end) DAY), '%Y/%m/%d') as week_end, "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.start) DAY), '%Y%U') as week "
+  + "FROM minus_week) recent_week "
+  + "LEFT JOIN sales_week on recent_week.week=sales_week.week and sales_week.gym_id=? ORDER BY recent_week.week;";
 
   var id = Number(req.params.id);
   var sql = sql_week;
   if(req.params.type === 'month')
     sql = sql_month;
-  console.log(sql);
+  
   let connection = await pool.getConnection(async conn => conn);
 
   try{
@@ -54,14 +43,19 @@ router.get('/getSales/:type/:id', async function (req, res) {
 })
 
 router.get('/getReservation/:type/:id', async function (req, res) {
-  var sql_month = "SELECT MONTH(date) AS month, count(*) as count FROM reservation WHERE gym_id=? GROUP BY month;";
-  var sql_week="SELECT "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  + "DATE_FORMAT(date, '%Y%U') AS week, count(*) as count "
-  + "FROM reservation "
-  + "WHERE gym_id=? "
-  + "GROUP BY week;";
+  var sql_month="select recent_month.month, IFNULL(reservation_month.reservation, 0) as reservation from ( "
+    + "SELECT date_format(date_sub(NOW(), INTERVAL minus MONTH), '%Y-%m') as month "
+    + "from minus_month) recent_month "
+    + "LEFT JOIN reservation_month on recent_month.month=reservation_month.month "
+    + "and reservation_month.gym_Id=? ORDER BY recent_month.month";
+  var sql_week="select recent_week.week_start, recent_week.week_end, recent_week.week, "
+  + "IFNULL(reservation_week.reservation, 0) as reservation from (SELECT "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.start) DAY), '%Y/%m/%d') as week_start, "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.end) DAY), '%Y/%m/%d') as week_end, "
+  + "DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())-minus_week.start) DAY), '%Y%U') as week "
+  + "FROM minus_week) recent_week "
+  + "LEFT JOIN reservation_week on recent_week.week=reservation_week.week and reservation_week.gym_id=? "
+  + "ORDER BY recent_week.week;";
 
   var id = Number(req.params.id);
   var sql = sql_week;
@@ -81,15 +75,6 @@ router.get('/getReservation/:type/:id', async function (req, res) {
 })
 
 router.get('/getTime/:type/:id', async function (req, res) {
-  /*var sql_month = 'SELECT MONTH(date) AS month, end_time-start_time as time, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, time;';
-  var sql_week="SELECT "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  + "DATE_FORMAT(date, '%Y%U') AS week, end_time - start_time as time, count(*) as reserve "
-  + "FROM reservation "
-  + "WHERE gym_id=? "
-  + "GROUP BY week, time;";*/
-
   var sql = "SELECT end_time - start_time as time, count(*) as count FROM reservation "
   + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
   + "AND gym_id=? group by time ORDER BY time"
@@ -109,15 +94,6 @@ router.get('/getTime/:type/:id', async function (req, res) {
 })
 
 router.get('/getPlayer/:type/:id', async function (req, res) {
-  // var sql_month = "SELECT MONTH(date) AS month, player, count(*) as reserve FROM reservation WHERE gym_id=? GROUP BY month, player;";
-  // var sql_week="SELECT "
-  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  // + "DATE_FORMAT(date, '%Y%U') AS week, player, count(*) as reserve "
-  // + "FROM reservation "
-  // + "WHERE gym_id=? "
-  // + "GROUP BY week, player;";
-
   var sql = "SELECT player, count(*) as count FROM reservation "
   + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
   + "AND gym_id=? group by player ORDER BY player";
@@ -138,15 +114,6 @@ router.get('/getPlayer/:type/:id', async function (req, res) {
 })
 
 router.get('/getCourt/:type/:id', async function (req, res) {
-  // var sql_month = "SELECT MONTH(date) AS month, court, count(*) as count FROM reservation WHERE gym_id=? GROUP BY month, court;";
-  // var sql_week="SELECT "
-  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-1) DAY), '%Y/%m/%d') as start, "
-  // + "DATE_FORMAT(DATE_SUB(date, INTERVAL (DAYOFWEEK(date)-7) DAY), '%Y/%m/%d') as end, "
-  // + "DATE_FORMAT(date, '%Y%U') AS week, court, count(*) as reserve "
-  // + "FROM reservation "
-  // + "WHERE gym_id=? "
-  // + "GROUP BY week, court;";
-
   var sql = "SELECT court, count(*) as count FROM reservation "
   + "WHERE date BETWEEN DATE_ADD(NOW(), INTERVAL -1 " + req.params.type + " ) AND NOW() "
   + "AND gym_id=? group by court ORDER BY court"
