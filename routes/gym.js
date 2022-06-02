@@ -193,6 +193,32 @@ router.post('/update/:id', async function (req, res) {//자기 체육관만 수�
   res.send("ㅎㅎ");
 })
 
+router.get('/reservationInfo/:id', async function (req, res) {
+  var id = req.params.id;
+  var sql = 'SELECT user_info.user_name, reservation.date, reservation.start_time, reservation.end_time, '
+  +'reservation.description, reservation.court '
+  + 'FROM reservation, user_info '
+  + 'WHERE date >= NOW() and reservation.gym_id=? and reservation.user_id=user_info.user_id '
+  + 'order by reservation.date;'
+
+ 
+  let connection = await pool.getConnection(async conn => conn);
+
+  try{
+    [result] = await connection.query(sql, id);
+    connection.release();
+    for(var i = 0; i< result.length;i++)
+      result[i]['date'] = result[i]['date'].toLocaleDateString();
+
+    res.send(result);
+  }catch(err){
+    console.log(err);
+    connection.release();
+    res.send({message: "fail"});
+  }
+
+})
+
 /*router.post('/update/:id', async function (req, res) {
   var update_gym_id = Number(req.params.id);
   var info = ["gym_name", "location", "sports", "phone", "email"];

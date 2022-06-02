@@ -7,7 +7,8 @@ var conn = mysql.createPool({
     password : db_config.password,
     database : db_config.database,
     multipleStatements: true,
-    connectionLimit: 10
+    connectionLimit: 10,
+    timezone: "+09:00"
 });
 
 //conn.connect();
