@@ -199,13 +199,15 @@ router.get('/reservationInfo/:id', async function (req, res) {
   +'reservation.description, reservation.court '
   + 'FROM reservation, user_info '
   + 'WHERE date >= NOW() and reservation.gym_id=? and reservation.user_id=user_info.user_id '
+  + 'and date = ? '
   + 'order by reservation.date;'
 
- 
+  var params = [id, req.body.date];
+
   let connection = await pool.getConnection(async conn => conn);
 
   try{
-    [result] = await connection.query(sql, id);
+    [result] = await connection.query(sql, params);
     connection.release();
     for(var i = 0; i< result.length;i++)
       result[i]['date'] = result[i]['date'].toLocaleDateString();
