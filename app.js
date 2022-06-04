@@ -16,6 +16,7 @@ const indexRouter = require('./routes');
 const gymRouter = require('./routes/gym');
 const accountRouter = require('./routes/account');
 const dataRouter = require('./routes/data');
+const recommendationRouter = require('./routes/recommendation');
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use('/', indexRouter);
 app.use('/account', accountRouter);
 app.use('/gym', gymRouter);
 app.use('/data', dataRouter);
+app.use('/recommendation', recommendationRouter);
 
 app.use((req, res, next) => {
   res.status(404).send('Not Found');
