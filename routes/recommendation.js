@@ -18,7 +18,7 @@ router.get('/:id', async function(req, res) {
     var connection = await pool.getConnection(async conn => conn);
     try{
         let [result] = await connection.query(sql, id);
-        console.log(result[0]['gym_id']);
+
         if(result.length == 0)
             res.redirect('recommendation/first/:id');
 

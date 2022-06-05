@@ -5,8 +5,9 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const axios = require('axios');
 const mysql = require('mysql2/promise');
-const { append } = require('express/lib/response');
+const { append, type } = require('express/lib/response');
 const Connection = require('mysql/lib/Connection');
+const spawn = require('child_process').spawn;
 
 const router = express.Router();
 
@@ -116,13 +117,27 @@ router.post('/signup/registration', async function (req, res) {
   const param_reg = [req.body.gym_id, req.body.reg_num, req.body.reg_date, req.body.host_name];
 
   var sql1 = 'INSERT INTO gym_registration VALUES(?, ?, ?, ?);'
-  //var sql1s = mysql.format(sql1, param_reg);
+  var sql2 = 'SELECT gym_info.gym_id as id, gym_info.gym_name as name, gym_info.state, gym_info.city, '
+  + 'gym_info.sports, gym_operation.price, gym_operation.court, gym_operation.player_per_court as player '
+  +'from gym_info, gym_operation where gym_info.gym_id = gym_operation.gym_id and gym_info.gym_id=?';
   
   let connection = await pool.getConnection(async conn => conn);
   try{
     let [results] = await connection.query(sql1, param_reg);
 
+    let [result] = await connection.query(sql2, req.body.gym_id);
     connection.release();
+
+    parameter = JSON.stringify(result[0]);
+
+    const update_sim = spawn('python', ['recommendation/make_sim.py', parameter, ]);
+
+    update_sim.stdout.on('data', (result)=>{
+      py_result = result.toString('utf-8');
+      console.log(py_result);
+    });
+
+   
 
     return res.send({message: "사업자 등록 정보 등록"});
   }catch(err){
